@@ -10,6 +10,40 @@ type Board struct {
 	AllOccupied   uint64
 }
 
+func (board *Board) Move(move Move) {
+	color, pieceType := ConvertPieceToPieceType(move.Piece)
+
+	board.Pieces[color][pieceType] &= ^(uint64(1) << move.From)
+	board.Pieces[color][pieceType] |= uint64(1) << move.To
+
+	if move.Captured != Empty {
+		capColor, capType := ConvertPieceToPieceType(move.Captured)
+		board.Pieces[capColor][capType] &= ^(uint64(1) << move.To)
+	}
+
+	board.Squares[move.From] = Empty
+	board.Squares[move.To] = move.Piece
+
+	RecomputeOccupied(board)
+}
+
+func (board *Board) UndoMove(move Move) {
+	color, pieceType := ConvertPieceToPieceType(move.Piece)
+
+	board.Pieces[color][pieceType] |= uint64(1) << move.From
+	board.Pieces[color][pieceType] &= ^(uint64(1) << move.To)
+
+	if move.Captured != Empty {
+		capColor, capType := ConvertPieceToPieceType(move.Captured)
+		board.Pieces[capColor][capType] |= uint64(1) << move.To
+	}
+
+	board.Squares[move.From] = move.Piece
+	board.Squares[move.To] = move.Captured
+
+	RecomputeOccupied(board)
+}
+
 type Move struct {
 	From     int
 	To       int

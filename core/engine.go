@@ -2,13 +2,93 @@ package core
 
 import "fmt"
 
-// Board Generation
+// Piece Conversion
+func ConvertPieceToPieceType(piece Piece) (Color, PieceType) {
+	var color Color
+	base := int(piece)
+
+	if piece >= BlackPawn {
+		color = Black
+		base -= 6
+	} else {
+		color = White
+	}
+
+	pieceType := PieceType(base - 1)
+
+	return color, pieceType
+}
+
 func ToSquarePiece(color Color, piece PieceType) Piece {
 	base := 1 + int(piece)
 	if color == Black {
 		base += 6
 	}
 	return Piece(base)
+}
+
+// Move Generation
+func GenerateAllMoves(board *Board, color Color) []Move {
+	var moves []Move
+
+	for sq := range 64 {
+		piece := board.Squares[sq]
+	
+		if piece == Empty { continue }
+	
+		pieceColor, pieceType := ConvertPieceToPieceType(piece)
+		if pieceColor != color { continue }
+
+		var pieceMoves uint64
+
+		switch pieceType {
+		case Pawn:
+			pieceMoves = PawnMoves(board, sq, color)
+		case Rook:
+			pieceMoves = RookMoves(board, sq, color)
+		case Knight:
+			pieceMoves = KnightMoves(board, sq, color)
+		case Bishop:
+			pieceMoves = BishopMoves(board, sq, color)
+		case Queen:
+			pieceMoves = QueenMoves(board, sq, color)
+		case King:
+			pieceMoves = KingMoves(board, sq, color)
+		}
+
+		for destSq := range 64 {
+			if (pieceMoves>>destSq) & 1 == 1 {
+				m := Move{
+					From: sq,
+					To: destSq,
+					Piece: piece,
+					Captured: board.Squares[destSq],
+				}
+				moves = append(moves, m)
+			}
+		}
+	}
+
+	return moves
+}
+
+// Board Generation
+func RecomputeOccupied(board *Board) {
+	board.WhiteOccupied = board.Pieces[White][Rook] |
+		board.Pieces[White][Knight] |
+		board.Pieces[White][Bishop] |
+		board.Pieces[White][Queen] |
+		board.Pieces[White][King] |
+		board.Pieces[White][Pawn]
+
+	board.BlackOccupied = board.Pieces[Black][Rook] |
+		board.Pieces[Black][Knight] |
+		board.Pieces[Black][Bishop] |
+		board.Pieces[Black][Queen] |
+		board.Pieces[Black][King] |
+		board.Pieces[Black][Pawn]
+
+	board.AllOccupied = board.WhiteOccupied | board.BlackOccupied
 }
 
 func FillSquares(board *Board) {
@@ -46,21 +126,7 @@ func NewGame() *Board {
 
 	FillSquares(board)
 
-	board.WhiteOccupied = board.Pieces[White][Rook] |
-		board.Pieces[White][Knight] |
-		board.Pieces[White][Bishop] |
-		board.Pieces[White][Queen] |
-		board.Pieces[White][King] |
-		board.Pieces[White][Pawn]
-
-	board.BlackOccupied = board.Pieces[Black][Rook] |
-		board.Pieces[Black][Knight] |
-		board.Pieces[Black][Bishop] |
-		board.Pieces[Black][Queen] |
-		board.Pieces[Black][King] |
-		board.Pieces[Black][Pawn]
-
-	board.AllOccupied = board.WhiteOccupied | board.BlackOccupied
+	RecomputeOccupied(board)
 
 	return board
 }
