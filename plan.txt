@@ -1,0 +1,19 @@
+Since I have already built a Chess AI before in C# and Python, this should be pretty easy. Gonna break it down in a few steps.
+
+1. Core (The Engine)
+
+- Create a way to represent the board (bitboard)
+- Move Generation (include promotion, en passant, castling, legal moves)
+- Make and unmake moves (mutates board, no copy)
+- A perfit function
+
+2. Search
+
+- Create minimax first, make sure it makes normal moves
+- Add alpha-beta pruning
+- Basic evaluation
+- Move ordering (MVV-LVA minimum)
+- Iterative deepening?
+- Transposition Table (Zobrist Hashing)
+
+3. Terminal TUI + Packaging
