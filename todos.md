@@ -1,0 +1,4 @@
+- [X] Represent the Board
+- [X] Move Generation
+    - [X] Basic Moves
+    - [ ] Special Moves (promotion, en passant, castling)
