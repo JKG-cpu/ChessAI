@@ -28,6 +28,24 @@ func ToSquarePiece(color Color, piece PieceType) Piece {
 }
 
 // Move Generation
+func GetSpecificPieceMove(board *Board, pieceType PieceType, sq int, color Color) uint64 {
+	switch pieceType {
+	case Pawn:
+		return PawnMoves(board, sq, color)
+	case Rook:
+		return RookMoves(board, sq, color)
+	case Knight:
+		return KnightMoves(board, sq, color)
+	case Bishop:
+		return BishopMoves(board, sq, color)
+	case Queen:
+		return QueenMoves(board, sq, color)
+	case King:
+		return KingMoves(board, sq, color)
+	}
+	return 0
+}
+
 func GenerateAllMoves(board *Board, color Color) []Move {
 	var moves []Move
 
@@ -39,22 +57,9 @@ func GenerateAllMoves(board *Board, color Color) []Move {
 		pieceColor, pieceType := ConvertPieceToPieceType(piece)
 		if pieceColor != color { continue }
 
-		var pieceMoves uint64
-
-		switch pieceType {
-		case Pawn:
-			pieceMoves = PawnMoves(board, sq, color)
-		case Rook:
-			pieceMoves = RookMoves(board, sq, color)
-		case Knight:
-			pieceMoves = KnightMoves(board, sq, color)
-		case Bishop:
-			pieceMoves = BishopMoves(board, sq, color)
-		case Queen:
-			pieceMoves = QueenMoves(board, sq, color)
-		case King:
-			pieceMoves = KingMoves(board, sq, color)
-		}
+		pieceMoves := GetSpecificPieceMove(
+			board, pieceType, sq, color,
+		)
 
 		for destSq := range 64 {
 			if (pieceMoves>>destSq) & 1 == 1 {
@@ -69,6 +74,64 @@ func GenerateAllMoves(board *Board, color Color) []Move {
 		}
 	}
 
+	return moves
+}
+
+func IsSquareAttacked(board *Board, sq int, byColor Color) bool {
+	for i := range 64 {
+		curPiece := board.Squares[i]
+
+		if curPiece == Empty { continue }
+		
+		pieceColor, pieceType := ConvertPieceToPieceType(curPiece)
+
+		if pieceColor != byColor {
+			continue
+		}
+
+		moves := GetSpecificPieceMove(board, pieceType, i, byColor)
+
+		if (moves>>sq) & 1 == 1 {
+			return true
+		}
+	}
+
+	return false
+}
+
+func IsKingInCheck(board *Board, color Color) bool {
+    kingPiece := ToSquarePiece(color, King)
+
+    var kingSq int
+    for i := range 64 {
+        if board.Squares[i] == kingPiece {
+            kingSq = i
+            break
+        }
+    }
+
+    enemyColor := White
+    if color == White {
+        enemyColor = Black
+    }
+
+    return IsSquareAttacked(board, kingSq, enemyColor)
+}
+
+func GenerateAllLegalMoves(board *Board, color Color) []Move {
+	var moves []Move
+	allMoves := GenerateAllMoves(board, color)
+
+	for _, m := range allMoves {
+		board.Move(m)
+
+		if !IsKingInCheck(board, color) {
+			moves = append(moves, m)
+		}
+
+		board.UndoMove(m)
+	}
+	
 	return moves
 }
 
