@@ -1,14 +1,9 @@
 package main
 
 import (
-	"fmt"
-	"github.com/JKG-cpu/ChessAI/core"
+	"github.com/JKG-cpu/ChessAI/display"
 )
 
 func main() {
-	board := core.NewGame()
-
-	moves := core.GenerateAllMoves(board, core.White)
-
-	fmt.Println(len(moves))
+	display.RunDisplay()
 }

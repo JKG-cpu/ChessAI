@@ -82,6 +82,24 @@ const (
 	King
 )
 
+func (p PieceType) GetPieceASCII() string {
+	switch p {
+	case Pawn:
+		return "P"
+	case Knight:
+		return "N"
+	case Bishop:
+		return "B"
+	case Rook:
+		return "R"
+	case Queen:
+		return "Q"
+	case King:
+		return "K"
+	}
+	return " "
+}
+
 type Color uint8
 
 const (
