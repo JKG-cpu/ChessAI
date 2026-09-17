@@ -22,6 +22,6 @@ func ClearTerminal() {
 }
 
 func main() {
-	display.RunDisplay()
+	display.RunDisplay(display.PlayerVSPlayer)
 	ClearTerminal()
 }
