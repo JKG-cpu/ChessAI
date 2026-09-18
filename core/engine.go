@@ -82,9 +82,42 @@ func GenerateAllMoves(board *Board, color Color) []Move {
 					Captured: captured,
 					PrevEnPassantCapture: board.enPassantTarget,
 					isEnPassant: isEnPassant,
+
+					PrevWhiteCanCastleKingSide:  board.WhiteCanCastleKingSide,
+					PrevWhiteCanCastleQueenSide: board.WhiteCanCastleQueenSide,
+					PrevBlackCanCastleKingSide:  board.BlackCanCastleKingSide,
+					PrevBlackCanCastleQueenSide: board.BlackCanCastleQueenSide,
 				}
 				moves = append(moves, m)
 			}
+		}
+	}
+
+
+	// Castling
+	kingSq := 4
+	if color == Black {
+		kingSq = 60
+	}
+
+	castleMoves := CastlingMoves(board, color)
+
+	for destSq := range 64 {
+		if (castleMoves>>destSq)&1 == 1 {
+			m := Move{
+				From:     kingSq,
+				To:       destSq,
+				Piece:    ToSquarePiece(color, King),
+				Captured: Empty,
+				isCastle: true,
+
+				PrevEnPassantCapture:       board.enPassantTarget,
+				PrevWhiteCanCastleKingSide:  board.WhiteCanCastleKingSide,
+				PrevWhiteCanCastleQueenSide: board.WhiteCanCastleQueenSide,
+				PrevBlackCanCastleKingSide:  board.BlackCanCastleKingSide,
+				PrevBlackCanCastleQueenSide: board.BlackCanCastleQueenSide,
+			}
+			moves = append(moves, m)
 		}
 	}
 
@@ -230,6 +263,11 @@ func NewGame() *Board {
 	board.Pieces[Black][Pawn] = 0xFF << 48
 
 	FillSquares(board)
+
+	board.WhiteCanCastleKingSide = true
+	board.WhiteCanCastleQueenSide = true
+	board.BlackCanCastleKingSide = true
+	board.BlackCanCastleQueenSide = true
 
 	RecomputeOccupied(board)
 

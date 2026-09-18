@@ -11,13 +11,25 @@ type Board struct {
 
 	moveHistory []Move
 
-	enPassantTarget int
+	enPassantTarget     int
 	prevEnPassantTarget int
+
+	WhiteCanCastleKingSide  bool
+	WhiteCanCastleQueenSide bool
+	BlackCanCastleKingSide  bool
+	BlackCanCastleQueenSide bool
 }
 
 func (board *Board) Move(move Move) {
 	color, pieceType := ConvertPieceToPieceType(move.Piece)
 
+	// Snapshot castling rights before mutating anything
+	// move.PrevWhiteCanCastleKingSide = board.WhiteCanCastleKingSide
+	// move.PrevWhiteCanCastleQueenSide = board.WhiteCanCastleQueenSide
+	// move.PrevBlackCanCastleKingSide = board.BlackCanCastleKingSide
+	// move.PrevBlackCanCastleQueenSide = board.BlackCanCastleQueenSide
+
+	// En passant target tracking
 	if pieceType == Pawn {
 		diff := move.To - move.From
 		if diff == 16 || diff == -16 {
@@ -29,13 +41,55 @@ func (board *Board) Move(move Move) {
 		board.enPassantTarget = -1
 	}
 
+	// Castling rights updates
+	if move.Piece == WhiteKing {
+		board.WhiteCanCastleKingSide = false
+		board.WhiteCanCastleQueenSide = false
+	}
+	if move.Piece == BlackKing {
+		board.BlackCanCastleKingSide = false
+		board.BlackCanCastleQueenSide = false
+	}
+	if move.From == 0 || move.To == 0 {
+		board.WhiteCanCastleQueenSide = false
+	}
+	if move.From == 7 || move.To == 7 {
+		board.WhiteCanCastleKingSide = false
+	}
+	if move.From == 56 || move.To == 56 {
+		board.BlackCanCastleQueenSide = false
+	}
+	if move.From == 63 || move.To == 63 {
+		board.BlackCanCastleKingSide = false
+	}
+
+	// Move the king (or any piece)
 	board.Pieces[color][pieceType] &= ^(uint64(1) << move.From)
 	board.Pieces[color][pieceType] |= uint64(1) << move.To
 
+	// Castling: also move the rook
+	if move.isCastle {
+		var rookFrom, rookTo int
+		switch move.To {
+		case 6:
+			rookFrom, rookTo = 7, 5
+		case 2:
+			rookFrom, rookTo = 0, 3
+		case 62:
+			rookFrom, rookTo = 63, 61
+		case 58:
+			rookFrom, rookTo = 56, 59
+		}
+		board.Pieces[color][Rook] &= ^(uint64(1) << rookFrom)
+		board.Pieces[color][Rook] |= uint64(1) << rookTo
+		board.Squares[rookFrom] = Empty
+		board.Squares[rookTo] = ToSquarePiece(color, Rook)
+	}
+
 	if move.isEnPassant {
-		capturedPawnSq := move.From/8 * 8 + move.To % 8
-		capColor, capPiece := ConvertPieceToPieceType(move.Captured)
-		board.Pieces[capColor][capPiece] &= ^(uint64(1) << uint64(capturedPawnSq))
+		capturedPawnSq := move.From/8*8 + move.To%8
+		capColor, capType := ConvertPieceToPieceType(move.Captured)
+		board.Pieces[capColor][capType] &= ^(uint64(1) << uint64(capturedPawnSq))
 		board.Squares[capturedPawnSq] = Empty
 	} else if move.Captured != Empty {
 		capColor, capType := ConvertPieceToPieceType(move.Captured)
@@ -54,6 +108,24 @@ func (board *Board) UndoMove(move Move) {
 	board.Pieces[color][pieceType] |= uint64(1) << move.From
 	board.Pieces[color][pieceType] &= ^(uint64(1) << move.To)
 
+	if move.isCastle {
+		var rookFrom, rookTo int
+		switch move.To {
+		case 6:
+			rookFrom, rookTo = 7, 5
+		case 2:
+			rookFrom, rookTo = 0, 3
+		case 62:
+			rookFrom, rookTo = 63, 61
+		case 58:
+			rookFrom, rookTo = 56, 59
+		}
+		board.Pieces[color][Rook] |= uint64(1) << rookFrom
+		board.Pieces[color][Rook] &= ^(uint64(1) << rookTo)
+		board.Squares[rookFrom] = ToSquarePiece(color, Rook)
+		board.Squares[rookTo] = Empty
+	}
+
 	if move.isEnPassant {
 		capturedPawnSq := move.From/8*8 + move.To%8
 		capColor, capType := ConvertPieceToPieceType(move.Captured)
@@ -69,18 +141,29 @@ func (board *Board) UndoMove(move Move) {
 	}
 
 	board.Squares[move.From] = move.Piece
+
 	board.enPassantTarget = move.PrevEnPassantCapture
+	board.WhiteCanCastleKingSide = move.PrevWhiteCanCastleKingSide
+	board.WhiteCanCastleQueenSide = move.PrevWhiteCanCastleQueenSide
+	board.BlackCanCastleKingSide = move.PrevBlackCanCastleKingSide
+	board.BlackCanCastleQueenSide = move.PrevBlackCanCastleQueenSide
 
 	RecomputeOccupied(board)
 }
 
 type Move struct {
-	From     int
-	To       int
-	Piece    Piece
-	Captured Piece
+	From                 int
+	To                   int
+	Piece                Piece
+	Captured             Piece
 	PrevEnPassantCapture int
-	isEnPassant bool
+	isEnPassant          bool
+	isCastle             bool
+
+	PrevWhiteCanCastleKingSide  bool
+	PrevWhiteCanCastleQueenSide bool
+	PrevBlackCanCastleKingSide  bool
+	PrevBlackCanCastleQueenSide bool
 }
 
 type Piece uint8

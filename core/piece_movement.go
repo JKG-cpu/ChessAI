@@ -159,6 +159,52 @@ func KingMoves(board *Board, sq int, color Color) uint64 {
 	return moves & ^ownOccupied
 }
 
+func CastlingMoves(board *Board, color Color) uint64 {
+	var moves uint64
+
+	if color == White {
+		if board.WhiteCanCastleKingSide {
+			if (board.AllOccupied>>5)&1 == 0 && (board.AllOccupied>>6)&1 == 0 {
+				if !IsSquareAttacked(board, 4, Black) &&
+					!IsSquareAttacked(board, 5, Black) &&
+					!IsSquareAttacked(board, 6, Black) {
+					moves |= 1 << 6
+				}
+			}
+		}
+		if board.WhiteCanCastleQueenSide {
+			if (board.AllOccupied>>1)&1 == 0 && (board.AllOccupied>>2)&1 == 0 && (board.AllOccupied>>3)&1 == 0 {
+				if !IsSquareAttacked(board, 4, Black) &&
+					!IsSquareAttacked(board, 3, Black) &&
+					!IsSquareAttacked(board, 2, Black) {
+					moves |= 1 << 2
+				}
+			}
+		}
+	} else {
+		if board.BlackCanCastleKingSide {
+			if (board.AllOccupied>>61)&1 == 0 && (board.AllOccupied>>62)&1 == 0 {
+				if !IsSquareAttacked(board, 60, White) &&
+					!IsSquareAttacked(board, 61, White) &&
+					!IsSquareAttacked(board, 62, White) {
+					moves |= 1 << 62
+				}
+			}
+		}
+		if board.BlackCanCastleQueenSide {
+			if (board.AllOccupied>>57)&1 == 0 && (board.AllOccupied>>58)&1 == 0 && (board.AllOccupied>>59)&1 == 0 {
+				if !IsSquareAttacked(board, 60, White) &&
+					!IsSquareAttacked(board, 59, White) &&
+					!IsSquareAttacked(board, 58, White) {
+					moves |= 1 << 58
+				}
+			}
+		}
+	}
+
+	return moves
+}
+
 func PawnMoves(board *Board, sq int, color Color) uint64 {
 	var direction int
 	if color == White {
