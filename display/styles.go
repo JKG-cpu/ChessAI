@@ -8,7 +8,7 @@ var (
 		Bold(true)
 
 	BlackPieceStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#b6a0a0")).
+		Foreground(lipgloss.Color("#000000")).
 		Bold(true)
 
 	NeutralStyle = lipgloss.NewStyle().

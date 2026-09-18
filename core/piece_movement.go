@@ -195,6 +195,7 @@ func PawnMoves(board *Board, sq int, color Color) uint64 {
 		}
 	}
 
+	// Capturing
 	captureFiles := []int{file - 1, file + 1}
 	for _, cf := range captureFiles {
 		if cf < 0 || cf > 7 {
@@ -205,7 +206,11 @@ func PawnMoves(board *Board, sq int, color Color) uint64 {
 			continue
 		}
 		captureSq := captureRank*8 + cf
-		if (enemyOccupied>>captureSq)&1 == 1 {
+
+		isNormalCapture := (enemyOccupied>>captureSq)&1 == 1
+		isEnPassantCapture := captureSq == board.enPassantTarget
+
+		if isNormalCapture || isEnPassantCapture {
 			moves |= 1 << captureSq
 		}
 	}

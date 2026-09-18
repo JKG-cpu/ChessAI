@@ -8,15 +8,36 @@ type Board struct {
 	WhiteOccupied uint64
 	BlackOccupied uint64
 	AllOccupied   uint64
+
+	moveHistory []Move
+
+	enPassantTarget int
+	prevEnPassantTarget int
 }
 
 func (board *Board) Move(move Move) {
 	color, pieceType := ConvertPieceToPieceType(move.Piece)
 
+	if pieceType == Pawn {
+		diff := move.To - move.From
+		if diff == 16 || diff == -16 {
+			board.enPassantTarget = (move.From + move.To) / 2
+		} else {
+			board.enPassantTarget = -1
+		}
+	} else {
+		board.enPassantTarget = -1
+	}
+
 	board.Pieces[color][pieceType] &= ^(uint64(1) << move.From)
 	board.Pieces[color][pieceType] |= uint64(1) << move.To
 
-	if move.Captured != Empty {
+	if move.isEnPassant {
+		capturedPawnSq := move.From/8 * 8 + move.To % 8
+		capColor, capPiece := ConvertPieceToPieceType(move.Captured)
+		board.Pieces[capColor][capPiece] &= ^(uint64(1) << uint64(capturedPawnSq))
+		board.Squares[capturedPawnSq] = Empty
+	} else if move.Captured != Empty {
 		capColor, capType := ConvertPieceToPieceType(move.Captured)
 		board.Pieces[capColor][capType] &= ^(uint64(1) << move.To)
 	}
@@ -33,13 +54,22 @@ func (board *Board) UndoMove(move Move) {
 	board.Pieces[color][pieceType] |= uint64(1) << move.From
 	board.Pieces[color][pieceType] &= ^(uint64(1) << move.To)
 
-	if move.Captured != Empty {
+	if move.isEnPassant {
+		capturedPawnSq := move.From/8*8 + move.To%8
+		capColor, capType := ConvertPieceToPieceType(move.Captured)
+		board.Pieces[capColor][capType] |= uint64(1) << capturedPawnSq
+		board.Squares[capturedPawnSq] = move.Captured
+		board.Squares[move.To] = Empty
+	} else if move.Captured != Empty {
 		capColor, capType := ConvertPieceToPieceType(move.Captured)
 		board.Pieces[capColor][capType] |= uint64(1) << move.To
+		board.Squares[move.To] = move.Captured
+	} else {
+		board.Squares[move.To] = Empty
 	}
 
 	board.Squares[move.From] = move.Piece
-	board.Squares[move.To] = move.Captured
+	board.enPassantTarget = move.PrevEnPassantCapture
 
 	RecomputeOccupied(board)
 }
@@ -49,6 +79,8 @@ type Move struct {
 	To       int
 	Piece    Piece
 	Captured Piece
+	PrevEnPassantCapture int
+	isEnPassant bool
 }
 
 type Piece uint8

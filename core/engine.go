@@ -62,12 +62,26 @@ func GenerateAllMoves(board *Board, color Color) []Move {
 		)
 
 		for destSq := range 64 {
+			isEnPassant := pieceType == Pawn && destSq == board.enPassantTarget
+			
+			captured := board.Squares[destSq]
+
+			if isEnPassant {
+				enemyColor := White
+				if pieceColor == White {
+					enemyColor = Black
+				}
+				captured = ToSquarePiece(enemyColor, Pawn)
+			}
+			
 			if (pieceMoves>>destSq) & 1 == 1 {
 				m := Move{
 					From: sq,
 					To: destSq,
 					Piece: piece,
-					Captured: board.Squares[destSq],
+					Captured: captured,
+					PrevEnPassantCapture: board.enPassantTarget,
+					isEnPassant: isEnPassant,
 				}
 				moves = append(moves, m)
 			}
