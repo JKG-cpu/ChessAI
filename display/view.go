@@ -16,7 +16,7 @@ func RenderBoard(board *core.Board, cursorSq int, selectedMoves []core.Move) str
 	rightSizePadding := strings.Repeat(" ", 4)
 
 	// File Label
-	fileLabel := "    A    B    C    D    E    F    G    H  "
+	fileLabel := "   A  B  C  D  E  F  G  H  "
 
 	finalString.WriteString(leftSizePadding)
 	finalString.WriteString(NeutralStyle.Render(fileLabel))
@@ -66,15 +66,15 @@ func RenderBoard(board *core.Board, cursorSq int, selectedMoves []core.Move) str
 			bracketClose := " ]"
 
 			if sq == cursorSq {
-				bracketOpen = HighlightedStyle.Render("[ ")
-				bracketClose = HighlightedStyle.Render(" ]")
+				bracketOpen = HighlightedStyle.Render("[")
+				bracketClose = HighlightedStyle.Render("]")
 			} else {
 				if isDarkSquare {
-					bracketOpen = BlackPieceStyle.Render("[ ")
-					bracketClose = BlackPieceStyle.Render(" ]")
+					bracketOpen = BlackPieceStyle.Render("[")
+					bracketClose = BlackPieceStyle.Render("]")
 				} else {
-					bracketOpen = WhitePieceStyle.Render("[ ")
-					bracketClose = WhitePieceStyle.Render(" ]")
+					bracketOpen = WhitePieceStyle.Render("[")
+					bracketClose = WhitePieceStyle.Render("]")
 				}
 			}
 
