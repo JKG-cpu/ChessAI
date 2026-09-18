@@ -135,6 +135,34 @@ func GenerateAllLegalMoves(board *Board, color Color) []Move {
 	return moves
 }
 
+func GetLegalMovesForSquare(board *Board, sq int, color Color) []Move {
+	allLegal := GenerateAllLegalMoves(board, color)
+
+	var result []Move
+
+	for _, m := range allLegal {
+		if m.From == sq {
+			result = append(result, m)
+		}
+	}
+
+	return result
+}
+
+func IsGameOver(board *Board, color Color) (bool, string) {
+	legalMoves := GenerateAllLegalMoves(board, color)
+
+	if len(legalMoves) > 0 {
+		return false, ""
+	}
+
+	if IsKingInCheck(board, color) {
+		return true, "Checkmate"
+	}
+
+	return true, "Stalemate"
+}
+
 // Board Generation
 func RecomputeOccupied(board *Board) {
 	board.WhiteOccupied = board.Pieces[White][Rook] |

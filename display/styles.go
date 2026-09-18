@@ -8,7 +8,7 @@ var (
 		Bold(true)
 
 	BlackPieceStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#000000")).
+		Foreground(lipgloss.Color("#b6a0a0")).
 		Bold(true)
 
 	NeutralStyle = lipgloss.NewStyle().
@@ -16,7 +16,7 @@ var (
 		Bold(true)
 
 	HighlightedStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("#00ffcc")).
+		Foreground(lipgloss.Color("#1eff00")).
 		Bold(true)
 
 	LegalMoveStyle = lipgloss.NewStyle().

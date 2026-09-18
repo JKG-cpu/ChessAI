@@ -9,7 +9,7 @@ import (
 	"github.com/charmbracelet/lipgloss"
 )
 
-func RenderBoard(board *core.Board, cursorSq int) string {
+func RenderBoard(board *core.Board, cursorSq int, selectedMoves []core.Move) string {
 	var finalString strings.Builder
 
 	leftSizePadding := strings.Repeat(" ", 4)
@@ -31,19 +31,34 @@ func RenderBoard(board *core.Board, cursorSq int) string {
 
 		for file := range 8 {
 			sq := rank*8 + file
+			isDarkSquare := (file + rank) % 2 == 0
 			piece := board.Squares[sq]
+
+			isLegalMoveSq := false
+			for _, move := range selectedMoves {
+				if move.To == sq {
+					isLegalMoveSq = true
+					break
+				}
+			}
 
 			var symbol string
 			if piece == core.Empty {
-				symbol = " "
+				if isLegalMoveSq {
+					symbol = LegalMoveStyle.Render("*")
+				} else {
+					symbol = " "
+				}
 			} else {
 				pieceColor, pieceType := core.ConvertPieceToPieceType(piece)
-				symbol = pieceType.GetPieceASCII()
-				strconv.Itoa(rank)
-				if pieceColor == core.White {
-					symbol = WhitePieceStyle.Render(symbol)
+				raw := pieceType.GetPieceASCII()
+
+				if isLegalMoveSq {
+					symbol = LegalMoveStyle.Render(raw)
+				} else if pieceColor == core.White {
+					symbol = WhitePieceStyle.Render(raw)
 				} else {
-					symbol = BlackPieceStyle.Render(symbol)
+					symbol = BlackPieceStyle.Render(raw)
 				}
 			}
 
@@ -54,8 +69,13 @@ func RenderBoard(board *core.Board, cursorSq int) string {
 				bracketOpen = HighlightedStyle.Render("[ ")
 				bracketClose = HighlightedStyle.Render(" ]")
 			} else {
-				bracketOpen = NeutralStyle.Render("[ ")
-				bracketClose = NeutralStyle.Render(" ]")
+				if isDarkSquare {
+					bracketOpen = BlackPieceStyle.Render("[ ")
+					bracketClose = BlackPieceStyle.Render(" ]")
+				} else {
+					bracketOpen = WhitePieceStyle.Render("[ ")
+					bracketClose = WhitePieceStyle.Render(" ]")
+				}
 			}
 
 			finalString.WriteString(bracketOpen)
@@ -113,13 +133,22 @@ func RenderStatusPanel(m model) string {
 		sb.WriteString("AI VS AI")
 	}
 
+	if m.gameOver {
+		sb.WriteString("\n\n")
+		if m.turn == core.White {
+			sb.WriteString("Black Won!!!")
+		} else {
+			sb.WriteString("White Won!!!")
+		}
+	}
+
 	return sb.String()
 }
 
 func (m model) View() string {
 	const statusPanelVerticalOverhead = 2
 	
-	boardString := RenderBoard(m.board, m.cursorSq)
+	boardString := RenderBoard(m.board, m.cursorSq, m.selectedSqMoves)
 	_, boardHeight := GetBoardSize(boardString)
 
 	statusString := StatusPanelStyle.

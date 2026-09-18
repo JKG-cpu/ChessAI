@@ -21,7 +21,10 @@ type model struct {
 
 	cursorSq int
 	selectedSq int
-	legalMoves []core.Move
+	selectedSqMoves []core.Move
+
+	gameOver bool
+	gameOverMessage string
 }
 
 func initialModel(mode GameMode) model {
@@ -29,5 +32,6 @@ func initialModel(mode GameMode) model {
 		board: core.NewGame(),
 		mode: mode,
 		cursorSq: 35,
+		selectedSq: -1,
 	}
 }
