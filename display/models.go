@@ -34,8 +34,8 @@ type model struct {
 	board *core.Board
 
 	mode GameMode
-	player1Color core.Color
-	player2Color core.Color
+	whiteIsAi bool
+	blackIsAi bool
 	turn core.Color
 
 	cursorSq int
@@ -46,13 +46,47 @@ type model struct {
 	gameOverMessage string
 }
 
+func (m model) IsAiTurn() bool {
+	if m.turn == core.White && m.whiteIsAi {
+		return true
+	}
+
+	if m.turn == core.Black && m.blackIsAi {
+		return true
+	}
+
+	return false
+}
+
 func initialModel(mode GameMode) model {
+	if mode == PlayerVSAI {
+		return model{
+			board: core.NewGame(),
+			mode: mode,
+			blackIsAi: true,
+			whiteIsAi: false,
+			cursorSq: 35,
+			selectedSq: -1,
+		}
+	}
+
+	if mode == AIVSAI {
+		return model{
+			board: core.NewGame(),
+			mode: mode,
+			blackIsAi: true,
+			whiteIsAi: true,
+			cursorSq: -1,
+			selectedSq: -1,
+		}
+	}
+
 	return model{
 		board: core.NewGame(),
 		mode: mode,
+		blackIsAi: false,
+		whiteIsAi: false,
 		cursorSq: 35,
-		player1Color: core.White,
-		player2Color: core.Black,
 		selectedSq: -1,
 	}
 }

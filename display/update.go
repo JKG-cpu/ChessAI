@@ -111,7 +111,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		// Check for AI Move
-		if m.mode == PlayerVSAI && m.turn == m.player2Color {
+		if m.IsAiTurn() {
 			return m, nil
 		}
 
@@ -131,8 +131,8 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				var moveMade bool
 				m, moveMade = SelectSquareForLegalMoves(m)
 
-				if moveMade && m.mode == PlayerVSAI && m.turn == m.player2Color && !m.gameOver {
-					return m, AiMoveCmd(m.board, 4, m.player2Color)
+				if moveMade && m.IsAiTurn() && !m.gameOver {
+					return m, AiMoveCmd(m.board, 4, m.turn)
 				}
 			}
 
@@ -147,6 +147,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		gameOver, gameMessage := core.IsGameOver(m.board, m.turn)
 		m.gameOver = gameOver
 		m.gameOverMessage = gameMessage
+
+		if m.IsAiTurn() && !m.gameOver {
+			return m, AiMoveCmd(m.board, 4, m.turn)
+		}
 
 		return m, nil
 	}

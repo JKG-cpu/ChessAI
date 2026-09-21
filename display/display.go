@@ -8,6 +8,9 @@ import (
 )
 
 func (m model) Init() tea.Cmd {
+	if m.IsAiTurn() {
+		return AiMoveCmd(m.board, 4, m.turn)
+	}
 	return nil
 }
 

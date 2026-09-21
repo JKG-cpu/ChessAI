@@ -58,24 +58,41 @@ func MiniMax(board *core.Board, depth int, maximizingPlayer bool) float64 {
 
 func GetBestMove(board *core.Board, depth int, color core.Color) core.Move {
 	var bestMove core.Move
-	bestScore := math.Inf(1)
 
-	isMaximizing := true
 	if color == core.White {
-		isMaximizing = false
-	}
+		bestScore := math.Inf(-1)
 
-	for _, move := range core.GenerateAllLegalMoves(board, color) {
-		board.Move(move)
+		isMaximizing := false
 
-		score := MiniMax(board, depth - 1, isMaximizing)
+		for _, move := range core.GenerateAllLegalMoves(board, color) {
+			board.Move(move)
 
-		if score < bestScore {
-			bestScore = score
-			bestMove = move
+			score := MiniMax(board, depth - 1, isMaximizing)
+
+			if score > bestScore {
+				bestScore = score
+				bestMove = move
+			}
+
+			board.UndoMove(move)
 		}
+	} else {
+		bestScore := math.Inf(1)
 
-		board.UndoMove(move)
+		isMaximizing := true
+
+		for _, move := range core.GenerateAllLegalMoves(board, color) {
+			board.Move(move)
+
+			score := MiniMax(board, depth - 1, isMaximizing)
+
+			if score < bestScore {
+				bestScore = score
+				bestMove = move
+			}
+
+			board.UndoMove(move)
+		}
 	}
 
 	return bestMove
