@@ -149,7 +149,7 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.gameOverMessage = gameMessage
 
 		if m.IsAiTurn() && !m.gameOver {
-			return m, AiMoveCmd(m.board, 4, m.turn)
+			return m, AiMoveCmd(m.board, 5, m.turn)
 		}
 
 		return m, nil
