@@ -124,6 +124,52 @@ func GenerateAllMoves(board *Board, color Color) []Move {
 	return moves
 }
 
+func GenerateAllLegalMoves(board *Board, color Color) []Move {
+	var moves []Move
+	allMoves := GenerateAllMoves(board, color)
+
+	for _, m := range allMoves {
+		board.Move(m)
+
+		if !IsKingInCheck(board, color) {
+			moves = append(moves, m)
+		}
+
+		board.UndoMove(m)
+	}
+	
+	return moves
+}
+
+func GetLegalMovesForSquare(board *Board, sq int, color Color) []Move {
+	allLegal := GenerateAllLegalMoves(board, color)
+
+	var result []Move
+
+	for _, m := range allLegal {
+		if m.From == sq {
+			result = append(result, m)
+		}
+	}
+
+	return result
+}
+
+// Checks
+func IsGameOver(board *Board, color Color) (bool, string) {
+	legalMoves := GenerateAllLegalMoves(board, color)
+
+	if len(legalMoves) > 0 {
+		return false, ""
+	}
+
+	if IsKingInCheck(board, color) {
+		return true, "Checkmate"
+	}
+
+	return true, "Stalemate"
+}
+
 func IsSquareAttacked(board *Board, sq int, byColor Color) bool {
 	for i := range 64 {
 		curPiece := board.Squares[i]
@@ -163,51 +209,6 @@ func IsKingInCheck(board *Board, color Color) bool {
     }
 
     return IsSquareAttacked(board, kingSq, enemyColor)
-}
-
-func GenerateAllLegalMoves(board *Board, color Color) []Move {
-	var moves []Move
-	allMoves := GenerateAllMoves(board, color)
-
-	for _, m := range allMoves {
-		board.Move(m)
-
-		if !IsKingInCheck(board, color) {
-			moves = append(moves, m)
-		}
-
-		board.UndoMove(m)
-	}
-	
-	return moves
-}
-
-func GetLegalMovesForSquare(board *Board, sq int, color Color) []Move {
-	allLegal := GenerateAllLegalMoves(board, color)
-
-	var result []Move
-
-	for _, m := range allLegal {
-		if m.From == sq {
-			result = append(result, m)
-		}
-	}
-
-	return result
-}
-
-func IsGameOver(board *Board, color Color) (bool, string) {
-	legalMoves := GenerateAllLegalMoves(board, color)
-
-	if len(legalMoves) > 0 {
-		return false, ""
-	}
-
-	if IsKingInCheck(board, color) {
-		return true, "Checkmate"
-	}
-
-	return true, "Stalemate"
 }
 
 // Board Generation
@@ -287,4 +288,44 @@ func PrintBitBoard(bits uint64) {
 		}
 		fmt.Println()
 	}
+}
+
+// Board Scoring (MiniMax)
+func GetPieceScore(piece PieceType) int {
+	switch piece {
+	case Pawn:
+		return PawnValue
+	case Knight:
+		return KnighValue
+	case Bishop:
+		return BishopValue
+	case Rook:
+		return RookValue
+	case Queen:
+		return QueenValue
+	case King:
+		return KingValue
+	}
+	return 0
+}
+
+func GetScore(board *Board) float64 {
+	var whiteScore int
+	var blackScore int
+
+	for _, piece := range board.Squares {
+		if piece == Empty {
+			continue
+		}
+		
+		pieceColor, pieceType := ConvertPieceToPieceType(piece)
+
+		if pieceColor == White {
+			whiteScore += GetPieceScore(pieceType)
+		} else {
+			blackScore += GetPieceScore(pieceType)
+		}
+	}
+
+	return float64(whiteScore - blackScore)
 }

@@ -58,7 +58,7 @@ func MoveCursorToRow(cursor int, col string) int {
 	return (rank - 1)*8 + file
 }
 
-func SelectSquareForLegalMoves(m model) model {
+func SelectSquareForLegalMoves(m model) (model, bool) {
 	// Check if trying to move piece
 	if m.selectedSq != -1 {
 		for _, move := range m.selectedSqMoves {
@@ -73,7 +73,7 @@ func SelectSquareForLegalMoves(m model) model {
 				m.gameOver = gameOver
 				m.gameOverMessage = gameMessage
 
-				return m
+				return m, true
 			}
 		}
 	}
@@ -82,13 +82,13 @@ func SelectSquareForLegalMoves(m model) model {
 	pieceColor, _ := core.ConvertPieceToPieceType(piece)
 
 	if pieceColor != m.turn || piece == core.Empty {
-		return m
+		return m, false
 	}
 
 	m.selectedSq = m.cursorSq
 	m.selectedSqMoves = core.GetLegalMovesForSquare(m.board, m.selectedSq, m.turn)
 
-	return m
+	return m, false
 }
 
 func ClearSelection(m model) model {
@@ -110,6 +110,11 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		}
 
+		// Check for AI Move
+		if m.mode == PlayerVSAI && m.turn == m.player2Color {
+			return m, nil
+		}
+
 		// Cursor Movement
 		if !m.gameOver {
 			switch msg.String() {
@@ -123,13 +128,27 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			// Piece Selection
 			if msg.Type == tea.KeyEnter {
-				m = SelectSquareForLegalMoves(m)
+				var moveMade bool
+				m, moveMade = SelectSquareForLegalMoves(m)
+
+				if moveMade && m.mode == PlayerVSAI && m.turn == m.player2Color && !m.gameOver {
+					return m, AiMoveCmd(m.board, 4, m.player2Color)
+				}
 			}
 
 			if msg.Type == tea.KeyEscape {
 				m = ClearSelection(m)
 			}
 		}
+	case AiMove:
+		m.board.Move(msg.move)
+		m = SwitchTurn(m)
+
+		gameOver, gameMessage := core.IsGameOver(m.board, m.turn)
+		m.gameOver = gameOver
+		m.gameOverMessage = gameMessage
+
+		return m, nil
 	}
 
 	return m, nil

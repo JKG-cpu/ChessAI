@@ -197,6 +197,15 @@ const (
 	King
 )
 
+const (
+	PawnValue = 1
+	KnighValue = 3
+	BishopValue = 3
+	RookValue = 5
+	QueenValue = 9
+	KingValue = 100000
+)
+
 func (p PieceType) GetPieceASCII() string {
 	switch p {
 	case Pawn:
