@@ -1,6 +1,8 @@
 package core
 
-import "fmt"
+import (
+	"fmt"
+)
 
 // Piece Conversion
 func ConvertPieceToPieceType(piece Piece) (Color, PieceType) {
@@ -313,7 +315,7 @@ func GetScore(board *Board) float64 {
 	var whiteScore int
 	var blackScore int
 
-	for _, piece := range board.Squares {
+	for i, piece := range board.Squares {
 		if piece == Empty {
 			continue
 		}
@@ -321,8 +323,14 @@ func GetScore(board *Board) float64 {
 		pieceColor, pieceType := ConvertPieceToPieceType(piece)
 
 		if pieceColor == White {
+			if pieceType == Knight {
+				whiteScore += KnightPositionScore(i, pieceColor)
+			}
 			whiteScore += GetPieceScore(pieceType)
 		} else {
+			if pieceType == Knight {
+				blackScore += KnightPositionScore(i, pieceColor)
+			}
 			blackScore += GetPieceScore(pieceType)
 		}
 	}
