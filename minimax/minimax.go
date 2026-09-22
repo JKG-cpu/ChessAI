@@ -69,6 +69,12 @@ func MiniMax(board *core.Board, depth int, maximizingPlayer bool, alpha float64,
 }
 
 func GetBestMove(board *core.Board, depth int, color core.Color) core.Move {
+	legalMoves := core.GenerateAllLegalMoves(board, color)
+
+	if len(legalMoves) == 0 {
+		return core.Move{}
+	}
+	
 	var bestMove core.Move
 	alpha := math.Inf(-1)
 	beta := math.Inf(1)
