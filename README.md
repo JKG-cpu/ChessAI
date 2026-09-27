@@ -3,8 +3,13 @@ A chess AI built in Go using bitboards!
 
 ![](./image.png)
 
-# Installation
+# Getting Started
 
+## Dependencies
+
+- You must have Go or Git installed
+
+## Installation + Running
 Install with go
 ```bash
 go install github.com/JKG-cpu/ChessAI@v0.1.0
@@ -18,3 +23,7 @@ hub.com/JKG-cpu/ChessAI.git
 cd ChessAI
 go run .
 ```
+
+## Help
+
+Please create an issue if you are experiencing any problems!
