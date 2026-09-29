@@ -31,6 +31,13 @@ cd ChessAI
 go run .
 ```
 
+Downloading the Linux Executable
+```bash
+cd path/to/exec/ # wherever you downloaded the executable
+chmod +x chessai-linux
+./chessai-linux
+```
+
 ## Help
 
 Please create an issue if you are experiencing any problems!
