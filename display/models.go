@@ -42,6 +42,11 @@ type model struct {
 	selectedSq int
 	selectedSqMoves []core.Move
 
+	promoting bool
+	promotionFrom int
+	promotionTo int
+	promotionCursor int
+
 	gameOver bool
 	gameOverMessage string
 }

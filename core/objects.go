@@ -23,12 +23,6 @@ type Board struct {
 func (board *Board) Move(move Move) {
 	color, pieceType := ConvertPieceToPieceType(move.Piece)
 
-	// Snapshot castling rights before mutating anything
-	// move.PrevWhiteCanCastleKingSide = board.WhiteCanCastleKingSide
-	// move.PrevWhiteCanCastleQueenSide = board.WhiteCanCastleQueenSide
-	// move.PrevBlackCanCastleKingSide = board.BlackCanCastleKingSide
-	// move.PrevBlackCanCastleQueenSide = board.BlackCanCastleQueenSide
-
 	// En passant target tracking
 	if pieceType == Pawn {
 		diff := move.To - move.From
@@ -96,8 +90,17 @@ func (board *Board) Move(move Move) {
 		board.Pieces[capColor][capType] &= ^(uint64(1) << move.To)
 	}
 
+	if move.IsPromotion {
+		board.Pieces[color][pieceType] &= ^(uint64(1) << move.To)
+		board.Pieces[color][move.Promotion] |= uint64(1) << move.To
+	}
+
 	board.Squares[move.From] = Empty
 	board.Squares[move.To] = move.Piece
+
+	if move.IsPromotion {
+		board.Squares[move.To] = ToSquarePiece(color, move.Promotion)
+	}
 
 	RecomputeOccupied(board)
 }
@@ -140,6 +143,13 @@ func (board *Board) UndoMove(move Move) {
 		board.Squares[move.To] = Empty
 	}
 
+	if move.IsPromotion {
+		board.Pieces[color][move.Promotion] &= ^(uint64(1) << move.To)
+		if move.Captured == Empty && !move.isEnPassant {
+			board.Squares[move.To] = Empty
+		}
+	}
+
 	board.Squares[move.From] = move.Piece
 
 	board.enPassantTarget = move.PrevEnPassantCapture
@@ -156,9 +166,11 @@ type Move struct {
 	To                   int
 	Piece                Piece
 	Captured             Piece
+	Promotion            PieceType
 	PrevEnPassantCapture int
 	isEnPassant          bool
 	isCastle             bool
+	IsPromotion          bool
 
 	PrevWhiteCanCastleKingSide  bool
 	PrevWhiteCanCastleQueenSide bool
@@ -230,3 +242,5 @@ const (
 	White Color = iota
 	Black
 )
+
+var PromotionOptions = []PieceType{Knight, Bishop, Rook, Queen}

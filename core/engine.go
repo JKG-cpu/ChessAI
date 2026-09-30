@@ -65,7 +65,6 @@ func GenerateAllMoves(board *Board, color Color) []Move {
 
 		for destSq := range 64 {
 			isEnPassant := pieceType == Pawn && destSq == board.enPassantTarget
-			
 			captured := board.Squares[destSq]
 
 			if isEnPassant {
@@ -75,22 +74,43 @@ func GenerateAllMoves(board *Board, color Color) []Move {
 				}
 				captured = ToSquarePiece(enemyColor, Pawn)
 			}
-			
-			if (pieceMoves>>destSq) & 1 == 1 {
-				m := Move{
-					From: sq,
-					To: destSq,
-					Piece: piece,
-					Captured: captured,
-					PrevEnPassantCapture: board.enPassantTarget,
-					isEnPassant: isEnPassant,
 
-					PrevWhiteCanCastleKingSide:  board.WhiteCanCastleKingSide,
-					PrevWhiteCanCastleQueenSide: board.WhiteCanCastleQueenSide,
-					PrevBlackCanCastleKingSide:  board.BlackCanCastleKingSide,
-					PrevBlackCanCastleQueenSide: board.BlackCanCastleQueenSide,
+			if (pieceMoves>>destSq)&1 == 1 {
+				isPromotionSq := pieceType == Pawn && ((pieceColor == White && destSq >= 56) || (pieceColor == Black && destSq <= 7))
+
+				if isPromotionSq {
+					for _, promo := range []PieceType{Knight, Bishop, Rook, Queen} {
+						m := Move{
+							From:     sq,
+							To:       destSq,
+							Piece:    piece,
+							Captured: captured,
+							Promotion: promo,
+							IsPromotion: true,
+							PrevEnPassantCapture: board.enPassantTarget,
+							isEnPassant: isEnPassant,
+							PrevWhiteCanCastleKingSide:  board.WhiteCanCastleKingSide,
+							PrevWhiteCanCastleQueenSide: board.WhiteCanCastleQueenSide,
+							PrevBlackCanCastleKingSide:  board.BlackCanCastleKingSide,
+							PrevBlackCanCastleQueenSide: board.BlackCanCastleQueenSide,
+						}
+						moves = append(moves, m)
+					}
+				} else {
+					m := Move{
+						From: sq,
+						To: destSq,
+						Piece: piece,
+						Captured: captured,
+						PrevEnPassantCapture: board.enPassantTarget,
+						isEnPassant: isEnPassant,
+						PrevWhiteCanCastleKingSide:  board.WhiteCanCastleKingSide,
+						PrevWhiteCanCastleQueenSide: board.WhiteCanCastleQueenSide,
+						PrevBlackCanCastleKingSide:  board.BlackCanCastleKingSide,
+						PrevBlackCanCastleQueenSide: board.BlackCanCastleQueenSide,
+					}
+					moves = append(moves, m)
 				}
-				moves = append(moves, m)
 			}
 		}
 	}

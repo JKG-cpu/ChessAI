@@ -63,6 +63,14 @@ func SelectSquareForLegalMoves(m model) (model, bool) {
 	if m.selectedSq != -1 {
 		for _, move := range m.selectedSqMoves {
 			if move.To == m.cursorSq {
+				if move.IsPromotion {
+					m.promoting = true
+					m.promotionFrom = move.From
+					m.promotionTo = move.To
+					m.promotionCursor = 0
+					m = ClearSelection(m)
+					return m, false
+				}
 				m.board.Move(move)
 				m = SwitchTurn(m)
 				m = ClearSelection(m)
@@ -112,6 +120,47 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		// Check for AI Move
 		if m.IsAiTurn() {
+			return m, nil
+		}
+
+		// Piece Promotion
+		if m.promoting {
+			switch msg.String() {
+			case "left":
+				m.promotionCursor--
+				if m.promotionCursor < 0 {
+					m.promotionCursor = 3
+				}
+			case "right":
+				m.promotionCursor++
+				if m.promotionCursor > 3 {
+					m.promotionCursor = 0
+				}
+			}
+
+			if msg.Type == tea.KeyEnter {
+				chosen := core.PromotionOptions[m.promotionCursor]
+				legalMoves := core.GetLegalMovesForSquare(m.board, m.promotionFrom, m.turn)
+				
+				for _, mv := range legalMoves {
+					if mv.To == m.promotionTo && mv.Promotion == chosen {
+						m.board.Move(mv)
+						m = SwitchTurn(m)
+
+						gameOver, gameMessage := core.IsGameOver(m.board, m.turn)
+						m.gameOver = gameOver
+						m.gameOverMessage = gameMessage
+
+						m.promoting = false
+
+						if m.IsAiTurn() && !m.gameOver {
+							return m, AiMoveCmd(m.board, 4, m.turn)
+						}
+						break
+					}
+				}
+			}
+
 			return m, nil
 		}
 

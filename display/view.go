@@ -113,6 +113,23 @@ func GetSquare(cursor int) string {
 func RenderStatusPanel(m model) string {
 	var sb strings.Builder
 
+	if m.promoting {
+		var sb strings.Builder
+		sb.WriteString("Promote to:\n\n")
+
+		labels := []string{"N", "B", "R", "Q"}
+		for i, label := range labels {
+			if i == m.promotionCursor {
+				sb.WriteString(HighlightedStyle.Render("[" + label + "]"))
+			} else {
+				sb.WriteString(NeutralStyle.Render(" " + label + " "))
+			}
+			sb.WriteString(" ")
+		}
+
+		return sb.String()
+	}
+
 	sb.WriteString("Turn: ")
 	if m.turn == core.White {
 		sb.WriteString("White")
