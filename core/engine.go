@@ -204,7 +204,12 @@ func IsSquareAttacked(board *Board, sq int, byColor Color) bool {
 			continue
 		}
 
-		moves := GetSpecificPieceMove(board, pieceType, i, byColor)
+		var moves uint64
+		if pieceType == Pawn {
+			moves = PawnAttacks(i, pieceColor)
+		} else {
+			moves = GetSpecificPieceMove(board, pieceType, i, pieceColor)
+		}
 
 		if (moves>>sq) & 1 == 1 {
 			return true

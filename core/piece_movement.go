@@ -263,3 +263,30 @@ func PawnMoves(board *Board, sq int, color Color) uint64 {
 
 	return moves
 }
+
+func PawnAttacks(sq int, color Color) uint64 {
+	var attacks uint64
+
+	direction := 1
+	if color == Black {
+		direction = -1
+	}
+
+	file := sq % 8
+	rank := sq / 8
+
+	attackFiles := []int{file - 1, file + 1}
+	for _, af := range attackFiles {
+		if af < 0 || af > 7 {
+			continue
+		}
+
+		attackRank := rank + direction
+		if attackRank < 0 || attackRank > 7 {
+			continue
+		}
+		attacks |= 1 << (attackRank * 8 + af)
+	}
+	
+	return attacks
+}
